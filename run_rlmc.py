@@ -1,5 +1,5 @@
 from models.ddpg import Actor, Critic
-from utils import load_data, evaluate_agent
+from utils import load_data, evaluate_agent, unify_input_data
 
 import os
 import time
@@ -444,6 +444,8 @@ def run_rlmc(use_weight=True, use_td=True, use_extra=True, use_pretrain=True, ep
 
 
 if __name__ == '__main__':
+    # unify_input_data()
+
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('--seed', default=42, type=int)
