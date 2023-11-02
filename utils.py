@@ -40,6 +40,69 @@ def compute_mae_error(y, bm_preds):
     return loss_df
 
 
+def unify_input_data_500():
+    # we have our "test" and "train" data
+    train_val_X   = np.load('dataset/train_val_X.npy')    # (62795, 120, 7)
+    train_val_y   = np.load('dataset/train_val_y.npy')    # (62795, 24)
+    test_val_X        = np.load('dataset/test_X.npy')         # (6867, 120, 7)
+    test_val_y        = np.load('dataset/test_y.npy')         # (6867, 24)
+
+    train_X = train_val_X
+    train_y = train_val_y
+
+    # split "train" into "train" and "valid"
+    L = len(test_val_y) // 2
+    test_X = test_val_X[:-L]
+    valid_X = test_val_X[-L:]
+    test_y = test_val_y[:-L]
+    valid_y = test_val_y[-L:]
+
+    # predictions
+    MODEL_NAMES = ['lstm1', 'lstm2', 'gru1', 'gru2', 'cnn1', 'cnn2',
+                   'transformer1', 'transformer2', 'repeat']
+    # take all the individual models predictions as arrays (this is why it's a .npz file)
+    # and store into a single array (a .npy file).
+    merge_data = []
+    bm_train_preds = np.load('dataset/bm_train_preds.npz')
+    for model_name in MODEL_NAMES:
+        model_pred = bm_train_preds[model_name]
+        model_pred = np.expand_dims(model_pred, axis=1)
+        merge_data.append(model_pred)
+    train_preds = np.concatenate(merge_data, axis=1)  # (62795, 9, 24)
+    np.save('dataset/bm_train_preds.npy', train_preds)
+
+    # take all the individual models predictions as arrays (this is why it's a .npz file)
+    # and store into a single array (a .npy file).
+    merge_test_data = []
+    bm_train_preds = np.load('dataset/bm_test_preds.npz')
+    for model_name in MODEL_NAMES:
+        model_pred = bm_train_preds[model_name]
+        model_pred = np.expand_dims(model_pred, axis=1)
+        merge_test_data.append(model_pred)
+    merge_data = np.concatenate(merge_test_data, axis=1)  # (62795, 9, 24)
+    merge_data = merge_data[:500]
+    test_preds = merge_data[:-L]
+    valid_preds = merge_data[-L:]
+    np.save('dataset/bm_test_preds.npy', test_preds)
+    np.save('dataset/bm_valid_preds.npy', valid_preds)
+
+    train_error_df = compute_mape_error(train_y, train_preds)
+    valid_error_df = compute_mape_error(valid_y, valid_preds)
+    test_error_df  = compute_mape_error(test_y , test_preds)
+
+    np.savez('dataset/input.npz',
+             train_X=train_X,
+             valid_X=valid_X,
+             test_X=test_X,
+             train_y=train_y,
+             valid_y=valid_y,
+             test_y=test_y,
+             train_error=train_error_df,
+             valid_error=valid_error_df,
+             test_error=test_error_df
+            )
+
+
 def unify_input_data():
     train_val_X   = np.load('dataset/train_val_X.npy')    # (62795, 120, 7)
     train_val_y   = np.load('dataset/train_val_y.npy')    # (62795, 24)
