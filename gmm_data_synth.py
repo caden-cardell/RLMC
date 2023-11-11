@@ -66,6 +66,23 @@ def synthesize_static_alpha_data():
     # Use advanced indexing to create train_x
     train_y = cumsum_data[indices]  # (445, 50)
 
+    # get the prediction deltas # TODO check all this!!!!!
+    dist_1_prediction_deltas = input_data['dist_1_prediction_deltas']  # (500,)
+    prediction_1 = torch.tensor(dist_1_prediction_deltas)[indices]
+    prediction_1 = torch.cumsum(prediction_1, dim=1)
+    prediction_1 = prediction_1 + torch.select(train_x, 1, -1).view(-1, 1)   # (445,)
+
+    dist_2_prediction_deltas = input_data['dist_2_prediction_deltas']  # (500,)
+    prediction_2 = torch.tensor(dist_2_prediction_deltas)[indices]
+    prediction_2 = torch.cumsum(prediction_2, dim=1)
+    prediction_2 = prediction_1 + torch.select(train_x, 1, -1).view(-1, 1)   # (445,)
+
+    np.savez('dataset/synthesized_data.npz',
+             train_x=train_x,
+             train_y=train_y,
+             prediction_1=prediction_1,
+             prediction_2=prediction_2)
+
 
 if __name__ == "__main__":
     synthesize_deltas()
