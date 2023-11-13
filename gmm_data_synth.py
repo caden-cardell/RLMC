@@ -19,10 +19,19 @@ def synthesize_deltas(number_of_points=500):
 
     # Generate random deltas
     dist_1_deltas = torch.normal(dist_1_mean, dist_1_std_dev, size)
-    dist_1_prediction_deltas = torch.normal(dist_1_mean, dist_1_std_dev, size)
-
     dist_2_deltas = torch.normal(dist_2_mean, dist_2_std_dev, size)
-    dist_2_prediction_deltas = torch.normal(dist_2_mean, dist_2_std_dev, size)
+
+    # generate prediction error
+    start_mean, end_mean = 0, 5
+    start_std, end_std = 1, 3
+
+    # Create tensors for linearly interpolated mean and standard deviation
+    means = torch.linspace(start_mean, end_mean, number_of_points)
+    stds = torch.linspace(start_std, end_std, number_of_points)
+
+    # Sample from the normal distribution for each index
+    dist_1_prediction_deltas = torch.stack([torch.normal(mean, std) for mean, std in zip(means, stds)])
+    dist_2_prediction_deltas = torch.flip(dist_1_prediction_deltas, [0])
 
     np.savez('dataset/synthesized_deltas.npz',
              dist_1_deltas=dist_1_deltas,
@@ -47,8 +56,7 @@ def synthesize_static_alpha_data(x_window_size=50, y_window_size=5):
     weighted_deltas = torch.tensor((1 - alpha) * dist_1_deltas + alpha * dist_2_deltas)  # (500,)
 
     # create the synthetic time series data, X and Y will be directly pulled from this tensor
-    cumsum_data = weighted_deltas
-    # cumsum_data = torch.cumsum(cumsum_data, dim=0)  # (500,)
+    cumsum_data = torch.cumsum(weighted_deltas, dim=0)  # (500,)
 
     # calculate the number of training data points we can use
     training_length = len(cumsum_data) - x_window_size - y_window_size
@@ -66,16 +74,12 @@ def synthesize_static_alpha_data(x_window_size=50, y_window_size=5):
     # Use advanced indexing to create train_x
     train_y = cumsum_data[indices]  # (445, 50)
 
-    # get the prediction deltas # TODO check all this!!!!!
+    # get the prediction deltas
     dist_1_prediction_deltas = input_data['dist_1_prediction_deltas']  # (500,)
-    prediction_1 = torch.tensor(dist_1_prediction_deltas)[indices]  # use the same indices as the ys but extract from the prediction deltas
-    prediction_1 = torch.cumsum(prediction_1, dim=1)  # cumulative sum the deltas
-    prediction_1 = prediction_1 + torch.select(train_x, 1, -1).view(-1, 1)   # (445,), take the last element of each x and add to each of the cumsums, this is the prediction
+    prediction_1 = train_y + torch.tensor(dist_1_prediction_deltas)[indices]
 
     dist_2_prediction_deltas = input_data['dist_2_prediction_deltas']  # (500,)
-    prediction_2 = torch.tensor(dist_2_prediction_deltas)[indices]
-    prediction_2 = torch.cumsum(prediction_2, dim=1)
-    prediction_2 = prediction_1 + torch.select(train_x, 1, -1).view(-1, 1)   # (445,)
+    prediction_2 = train_y + torch.tensor(dist_2_prediction_deltas)[indices]
 
     np.savez('dataset/synthesized_data.npz',
              train_x=train_x,
@@ -140,4 +144,4 @@ def gmm_unify_input_data():
 if __name__ == "__main__":
     synthesize_deltas(number_of_points=5000)
     synthesize_static_alpha_data(x_window_size=120, y_window_size=24)
-    # gmm_unify_input_data()
+    gmm_unify_input_data()
