@@ -212,3 +212,7 @@ def evaluate_agent(agent, test_states, test_bm_preds, test_y):
     mae_loss = mean_absolute_error(inv_trans(test_y), inv_trans(weighted_y))
     mape_loss = mean_absolute_percentage_error(inv_trans(test_y), inv_trans(weighted_y))
     return mae_loss, mape_loss, act_sorted
+
+
+if __name__ == "__main__":
+    unify_input_data()

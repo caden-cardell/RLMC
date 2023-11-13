@@ -315,8 +315,10 @@ def run_rlmc():
                 batch_buffer.append((state_idx, action_idx, rank, mape, mae))
         batch_buffer_df = pd.DataFrame(
             batch_buffer,
-            columns=['state_idx', 'action_idx', 'rank', 'mape', 'mae']) 
-        batch_buffer_df.to_csv('dataset/batch_buffer.csv')
+            columns=['state_idx', 'action_idx', 'rank', 'mape', 'mae'])
+
+
+
     else:
         batch_buffer_df = pd.read_csv('dataset/batch_buffer.csv', index_col=0)
     q_mape = [batch_buffer_df['mape'].quantile(0.1*i) for i in range(1, 10)]     
@@ -326,6 +328,8 @@ def run_rlmc():
 
     # combined reward
     def get_batch_rewards(env, idxes, actions):
+
+        print("actions", actions)
         rewards = []
         mae_lst = []
         for i in range(len(idxes)):
@@ -411,7 +415,6 @@ def run_rlmc():
     print(f'test_mae_loss: {test_mae_loss:.3f}\t'
           f'test_mape_loss: {test_mape_loss*100:.3f}')
     return test_mae_loss, test_mape_loss
-
 
 
 if __name__ == '__main__':

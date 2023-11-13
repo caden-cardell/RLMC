@@ -47,7 +47,8 @@ def synthesize_static_alpha_data(x_window_size=50, y_window_size=5):
     weighted_deltas = torch.tensor((1 - alpha) * dist_1_deltas + alpha * dist_2_deltas)  # (500,)
 
     # create the synthetic time series data, X and Y will be directly pulled from this tensor
-    cumsum_data = torch.cumsum(weighted_deltas, dim=0)  # (500,)
+    cumsum_data = weighted_deltas
+    # cumsum_data = torch.cumsum(cumsum_data, dim=0)  # (500,)
 
     # calculate the number of training data points we can use
     training_length = len(cumsum_data) - x_window_size - y_window_size
@@ -137,6 +138,6 @@ def gmm_unify_input_data():
 
 
 if __name__ == "__main__":
-    # synthesize_deltas(number_of_points=5000)
-    # synthesize_static_alpha_data(x_window_size=120, y_window_size=24)
-    gmm_unify_input_data()
+    synthesize_deltas(number_of_points=5000)
+    synthesize_static_alpha_data(x_window_size=120, y_window_size=24)
+    # gmm_unify_input_data()
