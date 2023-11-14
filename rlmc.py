@@ -434,5 +434,5 @@ if __name__ == '__main__':
     mae_loss, mape_loss = run_rlmc()
 
     with open(f'{exp_name}_s{seed}.txt', 'w') as f:
-        f.write(f'{mae_loss}, {mape_loss*100}\n')
+        f.write(f'{mae_loss}, {mape_loss}\n')
  

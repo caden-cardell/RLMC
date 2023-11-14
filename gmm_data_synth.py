@@ -1,6 +1,12 @@
 import torch
 import numpy as np
 from utils import compute_mape_error
+from sktime.performance_metrics.forecasting import \
+    mean_absolute_error, mean_absolute_percentage_error
+
+DATA_DIR = 'dataset'
+SCALE_MEAN, SCALE_STD = np.load(f'{DATA_DIR}/scaler.npy')
+def inv_trans(x): return x * SCALE_STD + SCALE_MEAN
 
 
 def synthesize_deltas(number_of_points=500):
@@ -31,7 +37,16 @@ def synthesize_deltas(number_of_points=500):
 
     # Sample from the normal distribution for each index
     dist_1_prediction_deltas = torch.stack([torch.normal(mean, std) for mean, std in zip(means, stds)])
-    dist_2_prediction_deltas = torch.flip(dist_1_prediction_deltas, [0])
+
+    # generate prediction error
+    start_mean, end_mean = 3, -3
+    start_std, end_std = 4, 1
+
+    # Create tensors for linearly interpolated mean and standard deviation
+    means = torch.linspace(start_mean, end_mean, number_of_points)
+    stds = torch.linspace(start_std, end_std, number_of_points)
+
+    dist_2_prediction_deltas = torch.stack([torch.normal(mean, std) for mean, std in zip(means, stds)])
 
     np.savez('dataset/synthesized_deltas.npz',
              dist_1_deltas=dist_1_deltas,
@@ -43,7 +58,7 @@ def synthesize_deltas(number_of_points=500):
 def synthesize_static_alpha_data(x_window_size=50, y_window_size=5):
 
     # parameters
-    alpha = 0.25
+    alpha = 0.95
 
     # import data
     input_data = np.load('dataset/synthesized_deltas.npz')
@@ -108,7 +123,16 @@ def gmm_unify_input_data():
     valid_y = all_Y[-(2*L):-L]
 
     pred_1  = input_data['prediction_1']  # (500,)
+    pred_1  = input_data['prediction_2']  # (500,)
     pred_2  = input_data['prediction_2']  # (500,)
+
+    mae_loss = mean_absolute_error(inv_trans(test_y), inv_trans(pred_1[-L:]))
+    mape_loss = mean_absolute_percentage_error(inv_trans(test_y), inv_trans(pred_1[-L:]))
+    print(f"pred_1 - mae_loss:{mae_loss:.3f}, mape_loss:{mape_loss*100:.3f}")
+
+    mae_loss = mean_absolute_error(inv_trans(test_y), inv_trans(pred_2[-L:]))
+    mape_loss = mean_absolute_percentage_error(inv_trans(test_y), inv_trans(pred_2[-L:]))
+    print(f"pred_2 - mae_loss:{mae_loss:.3f}, mape_loss:{mape_loss*100:.3f}")
 
     pred_1 = np.expand_dims(pred_1, axis=1)
     pred_2 = np.expand_dims(pred_2, axis=1)
@@ -142,6 +166,9 @@ def gmm_unify_input_data():
 
 
 if __name__ == "__main__":
-    synthesize_deltas(number_of_points=5000)
+    synthesize_deltas(number_of_points=1500)
     synthesize_static_alpha_data(x_window_size=120, y_window_size=24)
     gmm_unify_input_data()
+
+    # pred_1 - mae_loss:38.035, mape_loss:0.359
+    # pred_2 - mae_loss:21.865, mape_loss:0.206
