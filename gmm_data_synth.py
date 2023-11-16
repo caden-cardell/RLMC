@@ -1,4 +1,5 @@
 import torch
+import math
 import numpy as np
 from utils import compute_mape_error
 from sktime.performance_metrics.forecasting import \
@@ -38,14 +39,23 @@ def synthesize_deltas(number_of_points=500):
     # Sample from the normal distribution for each index
     dist_1_prediction_deltas = torch.stack([torch.normal(mean, std) for mean, std in zip(means, stds)])
 
-    # generate prediction error
-    start_mean, end_mean = 3, -3
+    # Define parameters for the sine wave
+    amplitude = 3  # Amplitude of the sine wave
+    frequency = 2 * math.pi / number_of_points  # Frequency - one full cycle over the number of points
+
+    # Create a tensor for the x values
+    x_values = torch.linspace(0, number_of_points - 1, number_of_points)
+
+    # Calculate the sine wave for the means
+    means = amplitude * torch.sin(frequency * x_values)
+
+    # Define standard deviation range
     start_std, end_std = 4, 1
 
-    # Create tensors for linearly interpolated mean and standard deviation
-    means = torch.linspace(start_mean, end_mean, number_of_points)
+    # Create tensors for linearly interpolated standard deviation
     stds = torch.linspace(start_std, end_std, number_of_points)
 
+    # Sample from the normal distribution for each index
     dist_2_prediction_deltas = torch.stack([torch.normal(mean, std) for mean, std in zip(means, stds)])
 
     np.savez('dataset/synthesized_deltas.npz',
@@ -112,7 +122,7 @@ def gmm_unify_input_data():
     all_X = input_data['train_x'][:, :, np.newaxis]
     all_Y  = input_data['train_y']
 
-    L = len(all_X) // 10
+    L = len(all_X) // 8
 
     train_X = all_X[:-(2*L)]
     test_X = all_X[-L:]
@@ -123,7 +133,7 @@ def gmm_unify_input_data():
     valid_y = all_Y[-(2*L):-L]
 
     pred_1  = input_data['prediction_1']  # (500,)
-    pred_1  = input_data['prediction_2']  # (500,)
+    # pred_1  = input_data['prediction_2']  # (500,)
     pred_2  = input_data['prediction_2']  # (500,)
 
     mae_loss = mean_absolute_error(inv_trans(test_y), inv_trans(pred_1[-L:]))
@@ -140,9 +150,10 @@ def gmm_unify_input_data():
     merge_data = [pred_1, pred_2]
     merge_data = np.concatenate(merge_data, axis=1)  # (62795, 9, 24)
 
-    train_preds = merge_data[:-(2*L)]
+    L2 = 2 * L
+    train_preds = merge_data[0:-L2]
     test_preds = merge_data[-L:]
-    valid_preds = merge_data[-(2*L):-L]
+    valid_preds = merge_data[-L2:-L]
 
     np.save('dataset/bm_train_preds.npy', train_preds)
     np.save('dataset/bm_valid_preds.npy', valid_preds)
@@ -166,9 +177,9 @@ def gmm_unify_input_data():
 
 
 if __name__ == "__main__":
-    synthesize_deltas(number_of_points=1500)
+    synthesize_deltas(number_of_points=5000)
     synthesize_static_alpha_data(x_window_size=120, y_window_size=24)
     gmm_unify_input_data()
 
-    # pred_1 - mae_loss:38.035, mape_loss:0.359
-    # pred_2 - mae_loss:21.865, mape_loss:0.206
+    # pred_1 - mae_loss:40.615, mape_loss:0.117
+    # pred_2 - mae_loss:12.150, mape_loss:0.036
