@@ -3,6 +3,7 @@ import numpy as np
 import re
 import math
 import matplotlib.pyplot as plt
+from utils import compute_mape_error
 
 
 def get_sample_indices(data_length, x_window_size=120, y_window_size=24):
@@ -77,7 +78,7 @@ def synthesize_predictions_from_data(input_filepath):
     return np.column_stack((dist_1_prediction, dist_2_prediction))
 
 
-def create_samples_from_data(input_filepath, output_filepath, x_window_size=120, y_window_size=24):
+def create_samples_from_data(input_filepath, x_window_size=120, y_window_size=24):
     # load data
     data = np.array(load_data_from_csv(input_filepath))
 
@@ -85,21 +86,20 @@ def create_samples_from_data(input_filepath, output_filepath, x_window_size=120,
     data_length = len(data)
 
     # create indices
-    feature_indices, label_indices = get_sample_indices(data_length)
+    feature_indices, label_indices = get_sample_indices(data_length,
+                                                        x_window_size=x_window_size,
+                                                        y_window_size=y_window_size)
 
     # use advanced indexing to create features
-    all_x = data[feature_indices]
+    feature_samples = data[feature_indices][:, :, np.newaxis]  # add dimension because this model works with multi-feature data
 
     # use advanced indexing to create labels
-    all_y = data[label_indices]
+    label_samples = data[label_indices]
 
-    # save to output file
-    np.savez(output_filepath,
-             all_x=all_x[:, :, np.newaxis],  # add dimension because this model works with multi-feature data
-             all_y=all_y)
+    return feature_samples, label_samples
 
 
-def create_prediction_samples_from_data(input_filepath):
+def create_prediction_samples_from_data(input_filepath, x_window_size=120, y_window_size=24):
     # get base model predictions
     base_model_predictions = synthesize_predictions_from_data(input_filepath)
 
@@ -108,7 +108,7 @@ def create_prediction_samples_from_data(input_filepath):
     data_length = len(base_model_predictions)
 
     # get the indices for training samples
-    _, label_indices = get_sample_indices(data_length)
+    _, label_indices = get_sample_indices(data_length, x_window_size=x_window_size, y_window_size=y_window_size)
 
     # get samples from base models
     merge_base_models_samples = []
@@ -151,9 +151,53 @@ def create_synthetic_model_prediction_plots():
     plot_data_vs_predictions(data=data, base_model_predictions=base_model_predictions)
 
 
+def unify_sample_data(input_filepath='data.csv', x_window_size=120, y_window_size=24):
+
+    feature_samples, label_samples = create_samples_from_data(input_filepath,
+                                                              x_window_size=x_window_size,
+                                                              y_window_size=y_window_size)
+    base_model_samples = create_prediction_samples_from_data(input_filepath,
+                                                             x_window_size=x_window_size,
+                                                             y_window_size=y_window_size)
+
+    L = len(feature_samples) // 8
+
+    test_X = feature_samples[-L:]
+    valid_X = feature_samples[-(2 * L):-L]
+    train_X = feature_samples[:-(2 * L)]
+
+    test_y = label_samples[-L:]
+    valid_y = label_samples[-(2 * L):-L]
+    train_y = label_samples[:-(2 * L)]
+
+    test_preds = base_model_samples[-L:]
+    valid_preds = base_model_samples[-(2 * L):-L]
+    train_preds = base_model_samples[:-(2 * L)]
+
+    test_error_df  = compute_mape_error(test_y , test_preds)
+    valid_error_df = compute_mape_error(valid_y, valid_preds)
+    train_error_df = compute_mape_error(train_y, train_preds)
+
+    np.save('dataset/bm_test_preds.npy', test_preds)
+    np.save('dataset/bm_valid_preds.npy', valid_preds)
+    np.save('dataset/bm_train_preds.npy', train_preds)
+
+    np.savez('dataset/input.npz',
+             test_X=test_X,
+             valid_X=valid_X,
+             train_X=train_X,
+             test_y=test_y,
+             valid_y=valid_y,
+             train_y=train_y,
+             test_error=test_error_df,
+             valid_error=valid_error_df,
+             train_error=train_error_df
+            )
+
+
 if __name__ == '__main__':
     # create_synthetic_model_prediction_plots()
-    create_prediction_samples_from_data(input_filepath='data.csv')
+    # create_prediction_samples_from_data(input_filepath='data.csv')
 
     # create_samples_from_data(input_filepath='data.csv', output_filepath='inputs.npz')
-
+    unify_sample_data(input_filepath='data.csv', x_window_size=120, y_window_size=24)
