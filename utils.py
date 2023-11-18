@@ -211,6 +211,15 @@ def evaluate_agent(agent, test_states, test_bm_preds, test_y):
     weighted_y = weighted_y.sum(1)  # (2816, 24)
     mae_loss = mean_absolute_error(inv_trans(test_y), inv_trans(weighted_y))
     mape_loss = mean_absolute_percentage_error(inv_trans(test_y), inv_trans(weighted_y))
+
+    # save to file for plotting
+    np.savez('dataset/test_results.npz',
+             test_X=test_states.cpu(),
+             test_bm_preds=test_bm_preds,
+             rl_preds=weighted_y,
+             test_y=test_y
+            )
+
     return mae_loss, mape_loss, act_sorted
 
 

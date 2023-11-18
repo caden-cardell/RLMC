@@ -3,7 +3,8 @@ import numpy as np
 import re
 import math
 import matplotlib.pyplot as plt
-from utils import compute_mape_error
+from utils import compute_mape_error, compute_mae_error
+from run_rlmc import run_rlmc
 
 
 def get_sample_indices(data_length, x_window_size=120, y_window_size=24):
@@ -78,6 +79,31 @@ def synthesize_predictions_from_data(input_filepath):
     return np.column_stack((dist_1_prediction, dist_2_prediction))
 
 
+def synthesize_homogenous_predictions_from_data(input_filepath):
+    # import data
+    data = np.array(load_data_from_csv(input_filepath))
+    data_length = len(data)
+
+    # generate prediction error
+    start_mean, end_mean = 0, 0
+    start_std, end_std = .1, .1
+
+    # Create tensors for linearly interpolated mean and standard deviation
+    means = torch.linspace(start_mean, end_mean, data_length)
+    stds = torch.linspace(start_std, end_std, data_length)
+
+    # Sample from the normal distribution for each index
+    dist_1_prediction_deltas = torch.stack([torch.normal(mean, std) for mean, std in zip(means, stds)])
+
+    # Sample from the normal distribution for each index
+    dist_2_prediction_deltas = torch.stack([torch.normal(mean, std) for mean, std in zip(means, stds)])
+
+    dist_1_prediction = dist_1_prediction_deltas + data
+    dist_2_prediction = dist_2_prediction_deltas + data
+
+    return np.column_stack((dist_1_prediction, dist_2_prediction))
+
+
 def create_samples_from_data(input_filepath, x_window_size=120, y_window_size=24):
     # load data
     data = np.array(load_data_from_csv(input_filepath))
@@ -101,7 +127,7 @@ def create_samples_from_data(input_filepath, x_window_size=120, y_window_size=24
 
 def create_prediction_samples_from_data(input_filepath, x_window_size=120, y_window_size=24):
     # get base model predictions
-    base_model_predictions = synthesize_predictions_from_data(input_filepath)
+    base_model_predictions = synthesize_homogenous_predictions_from_data(input_filepath)
 
     # get important dimensions
     number_of_base_models = base_model_predictions.shape[1]  # number of base models
@@ -145,7 +171,7 @@ def create_synthetic_model_prediction_plots():
     data = np.array(load_data_from_csv(input_filepath='data.csv'))
 
     # synthesis the models' predictions
-    base_model_predictions = synthesize_predictions_from_data(input_filepath='data.csv')
+    base_model_predictions = synthesize_homogenous_predictions_from_data(input_filepath='data.csv')
 
     # plot
     plot_data_vs_predictions(data=data, base_model_predictions=base_model_predictions)
@@ -195,9 +221,114 @@ def unify_sample_data(input_filepath='data.csv', x_window_size=120, y_window_siz
             )
 
 
-if __name__ == '__main__':
-    # create_synthetic_model_prediction_plots()
-    # create_prediction_samples_from_data(input_filepath='data.csv')
+def plot_test_results():
 
-    # create_samples_from_data(input_filepath='data.csv', output_filepath='inputs.npz')
+    input_data = np.load('dataset/test_results.npz')
+
+    test_bm_preds = input_data['test_bm_preds']
+    rl_preds  = input_data['rl_preds'][:, 0]
+    test_y = input_data['test_y'][:, 0]
+
+    pass
+
+    # plotting
+    n = test_bm_preds.shape[1]  # number of base models
+    for base_model_num in range(n):
+        plt.plot(test_bm_preds[:, base_model_num, 0], label=f"Base model {base_model_num}")
+
+    plt.plot(rl_preds, label="RL agent predictions", color='blue')
+    plt.plot(test_y, label="True data", color='red')
+
+    # labeling
+    plt.xlabel('15 minute time steps')
+    plt.ylabel('Degrees F')
+    plt.title('Synthetic Model Test Results')
+    plt.legend()
+
+    # Display the plot
+    plt.show()
+
+
+def plot_test_mape_loss():
+
+    # get data
+    input_data = np.load('dataset/test_results.npz')
+    test_bm_preds = input_data['test_bm_preds']
+    rl_preds  = input_data['rl_preds']
+    test_y = input_data['test_y']
+
+    # plotting
+    n = test_bm_preds.shape[1]  # number of base models
+    for base_model_num in range(n):
+
+        # get model
+        bm = test_bm_preds[:, base_model_num, :]
+
+        # get loss
+        mape_loss = compute_mape_error(test_y, bm[:, np.newaxis, :])
+
+        plt.plot(mape_loss, label=f"Base model {base_model_num} error")
+
+    mape_loss = compute_mape_error(test_y, rl_preds[:, np.newaxis, :])
+    plt.plot(mape_loss, label="RL agent error", color='red')
+
+    # labeling
+    plt.xlabel('15 minute time steps')
+    plt.ylabel('Error')
+    plt.title('Synthetic Model Test Results')
+    plt.legend()
+
+    # Display the plot
+    plt.show()
+
+
+def plot_test_mae_loss():
+
+    # get data
+    input_data = np.load('dataset/test_results.npz')
+    test_bm_preds = input_data['test_bm_preds']
+    rl_preds  = input_data['rl_preds']
+    test_y = input_data['test_y']
+
+    # plotting
+    n = test_bm_preds.shape[1]  # number of base models
+    for base_model_num in range(n):
+
+        # get model
+        bm = test_bm_preds[:, base_model_num, :]
+
+        # get loss
+        mae_loss = compute_mae_error(test_y, bm[:, np.newaxis, :])
+
+        plt.plot(mae_loss, label=f"Base model {base_model_num} error")
+
+    mae_loss = compute_mae_error(test_y, rl_preds[:, np.newaxis, :])
+    plt.plot(mae_loss, label="RL agent error", color='red')
+
+    # labeling
+    plt.xlabel('15 minute time steps')
+    plt.ylabel('Error')
+    plt.title('Synthetic Model Test Results')
+    plt.legend()
+
+    # Display the plot
+    plt.show()
+
+
+if __name__ == '__main__':
+
+    # create data
     unify_sample_data(input_filepath='data.csv', x_window_size=120, y_window_size=24)
+
+    # plot synthetic data
+    create_synthetic_model_prediction_plots()
+
+    # run RL agent
+    run_rlmc(False, True, True, True, 0.5)
+
+    # plot results
+    plot_test_results()
+
+    # plot error
+    plot_test_mape_loss()
+    plot_test_mae_loss()
