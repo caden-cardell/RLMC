@@ -275,7 +275,7 @@ def plot_test_mape_loss():
     # labeling
     plt.xlabel('15 minute time steps')
     plt.ylabel('Error')
-    plt.title('Synthetic Model Test Results')
+    plt.title('MAPE Error')
     plt.legend()
 
     # Display the plot
@@ -308,7 +308,7 @@ def plot_test_mae_loss():
     # labeling
     plt.xlabel('15 minute time steps')
     plt.ylabel('Error')
-    plt.title('Synthetic Model Test Results')
+    plt.title('MAE Error')
     plt.legend()
 
     # Display the plot
