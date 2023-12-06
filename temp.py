@@ -1,20 +1,24 @@
+#!/usr/bin/env python
+
+import numpy as np
+import matplotlib.pyplot as plt
+import re
+from sklearn.preprocessing import MinMaxScaler
+
+import torch
+import torch.nn as nn
+
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
 if __name__ == '__main__':
     # !/usr/bin/env python
     # coding: utf-8
 
     # In[1]:
 
-    import pandas as pd
-    import numpy as np
-    import matplotlib.pyplot as plt
-    import re
-    from sklearn.preprocessing import MinMaxScaler
-
-    import torch
-    import torch.nn as nn
-
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     torch.rand(1)  # to test that numbers are random
+
+    torch.manual_seed(0)
 
     # In[2]:
 
