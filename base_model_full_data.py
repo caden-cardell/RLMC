@@ -14,9 +14,8 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # hyper parameters
 FEATURE_LENGTH = 7
-LABEL_LENGTH = 1
 LEARNING_RATE = 0.001
-NUMBER_OF_EPOCHS = 30
+NUMBER_OF_EPOCHS = 20
 TRAIN_TO_TEST_RATIO = 0.7
 BATCH_SIZE = 16
 
@@ -34,11 +33,10 @@ def main(seed=None):
     data = import_scaled_data()
 
     feature_indices, label_indices = get_sample_indices(data_length=len(data),
-                                            x_window_size=FEATURE_LENGTH,
-                                            y_window_size=LABEL_LENGTH)
+                                                        x_window_size=FEATURE_LENGTH,
+                                                        y_window_size=1)
 
     X = data[feature_indices]
-    X = X[:, :, np.newaxis]  # add dimension
     y = data[label_indices]
 
     # split train and test data and add dimension to X
@@ -63,7 +61,7 @@ def main(seed=None):
     test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
     # initialize model and move to device
-    model = LSTM(1, 5, 1, device=device)
+    model = LSTM(1, 2, 1, device=device)
     model.to(device)
 
     # train model
@@ -80,7 +78,7 @@ def main(seed=None):
 
     feature_indices, _ = get_sample_indices(data_length=len(data),
                                             x_window_size=FEATURE_LENGTH,
-                                            y_window_size=LABEL_LENGTH)
+                                            y_window_size=1)
 
     X = data[feature_indices]
     X = X[:, :, np.newaxis]  # add dimension
@@ -91,7 +89,7 @@ def main(seed=None):
     with torch.no_grad():
         predicted = model(X.to(device)).to('cpu').numpy()
 
-    np.save('predicted.npy', predicted)
+    return predicted
 
 
 if __name__ == '__main__':

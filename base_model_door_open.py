@@ -14,7 +14,6 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # hyper parameters
 FEATURE_LENGTH = 7
-LABEL_LENGTH = 1
 LEARNING_RATE = 0.001
 NUMBER_OF_EPOCHS = 30
 TRAIN_TO_TEST_RATIO = 0.7
@@ -30,7 +29,7 @@ def import_scaled_data_door_open():
 
     # init empty arrays
     feature_framed_data = np.empty((0, FEATURE_LENGTH))
-    label_framed_data = np.empty((0, LABEL_LENGTH))
+    label_framed_data = np.empty((0, 1))
 
     for points in door_open:
         # get sub_data
@@ -39,7 +38,7 @@ def import_scaled_data_door_open():
         # get frames of data
         feature_indices, label_indices = get_sample_indices(data_length=len(sub_data),
                                                             x_window_size=FEATURE_LENGTH,
-                                                            y_window_size=LABEL_LENGTH)
+                                                            y_window_size=1)
         feature_framed_sub_data = np.array(sub_data)[feature_indices]
         label_framed_sub_data = np.array(sub_data)[label_indices]
 
@@ -101,7 +100,7 @@ def main(seed=None):
 
     feature_indices, _ = get_sample_indices(data_length=len(data),
                                             x_window_size=FEATURE_LENGTH,
-                                            y_window_size=LABEL_LENGTH)
+                                            y_window_size=1)
 
     X = data[feature_indices]
     X = X[:, :, np.newaxis]  # add dimension
@@ -112,7 +111,7 @@ def main(seed=None):
     with torch.no_grad():
         predicted = model(X.to(device)).to('cpu').numpy()
 
-    np.save('predicted.npy', predicted)
+    return predicted
 
 
 if __name__ == '__main__':
