@@ -198,6 +198,14 @@ def plot_best_data(train_error, valid_error, test_error):
     fig.savefig('jena_best_model.png', dpi=300)
 
 
+def print_model_error(model_number, y, predicted):
+    mae_loss = mean_absolute_error(inv_trans(y), inv_trans(predicted))
+    mape_loss = mean_absolute_percentage_error(inv_trans(y), inv_trans(predicted))
+
+    print(f"Model {model_number} MAE error: {mae_loss:.5f}")
+    print(f"Model {model_number} MAPE error: {mape_loss*100:.5f}")
+
+
 ############
 # evaluate #
 ############

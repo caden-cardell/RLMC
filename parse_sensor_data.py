@@ -3,7 +3,7 @@ import numpy as np
 import re
 import math
 import matplotlib.pyplot as plt
-from utils import compute_mape_error, compute_mae_error
+from utils import compute_mape_error, compute_mae_error, print_model_error
 from run_rlmc import run_rlmc
 
 
@@ -221,6 +221,71 @@ def unify_sample_data(input_filepath='data.csv', x_window_size=120, y_window_siz
             )
 
 
+def unify_data_base_models():
+    bm_1 = np.load('bm_1.npy')
+    bm_2 = np.load('bm_2.npy')
+    X = np.load('X.npy')
+    Y = np.load('Y.npy')
+
+    feature_samples = X
+    label_samples = Y
+
+    bm_1 = np.expand_dims(bm_1, axis=1)
+    bm_2 = np.expand_dims(bm_2, axis=1)
+
+    base_model_samples = np.concatenate([bm_1, bm_2], axis=1)
+
+    # L = len(feature_samples) // 8
+    L = len(feature_samples) - 2993
+
+    test_X = feature_samples[-L:]
+    valid_X = feature_samples[-(2 * L):-L]
+    train_X = feature_samples[:-(2 * L)]
+
+    test_y = label_samples[-L:]
+    valid_y = label_samples[-(2 * L):-L]
+    train_y = label_samples[:-(2 * L)]
+
+    test_preds = base_model_samples[-L:]
+    valid_preds = base_model_samples[-(2 * L):-L]
+    train_preds = base_model_samples[:-(2 * L)]
+
+    # test_X = feature_samples[:L]
+    # valid_X = feature_samples[L:(2 * L)]
+    # train_X = feature_samples[(2 * L):]
+    #
+    # test_y = label_samples[:L]
+    # valid_y = label_samples[L:(2 * L)]
+    # train_y = label_samples[(2 * L):]
+    #
+    # test_preds = base_model_samples[:L]
+    # valid_preds = base_model_samples[L:(2 * L)]
+    # train_preds = base_model_samples[(2 * L):]
+
+    test_error_df  = compute_mape_error(test_y , test_preds)
+    valid_error_df = compute_mape_error(valid_y, valid_preds)
+    train_error_df = compute_mape_error(train_y, train_preds)
+
+    print_model_error(1, test_y, test_preds[:, 0])
+    print_model_error(2, test_y, test_preds[:, 1])
+
+    np.save('dataset/bm_test_preds.npy', test_preds)
+    np.save('dataset/bm_valid_preds.npy', valid_preds)
+    np.save('dataset/bm_train_preds.npy', train_preds)
+
+    np.savez('dataset/input.npz',
+             test_X=test_X,
+             valid_X=valid_X,
+             train_X=train_X,
+             test_y=test_y,
+             valid_y=valid_y,
+             train_y=train_y,
+             test_error=test_error_df,
+             valid_error=valid_error_df,
+             train_error=train_error_df
+            )
+
+
 def plot_test_results():
 
     input_data = np.load('dataset/test_results.npz')
@@ -318,10 +383,11 @@ def plot_test_mae_loss():
 if __name__ == '__main__':
 
     # create data
-    unify_sample_data(input_filepath='data.csv', x_window_size=120, y_window_size=24)
+    # unify_sample_data(input_filepath='data.csv', x_window_size=120, y_window_size=24)
+    unify_data_base_models()
 
     # plot synthetic data
-    create_synthetic_model_prediction_plots()
+    # create_synthetic_model_prediction_plots()
 
     # run RL agent
     run_rlmc(False, True, True, True, 0.5)
