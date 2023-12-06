@@ -39,7 +39,7 @@ def get_sample_indices(data_length, x_window_size=120, y_window_size=24):
 
 def import_scaled_data():
     data = load_data_from_csv("75e9_2023_09_07_11_02_to_2023_09_13_11_02.csv")
-    print(data)
+    # print(data)
 
     # scale data
     scaler = MinMaxScaler(feature_range=(-1, 1))
