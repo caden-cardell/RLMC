@@ -37,8 +37,8 @@ def import_scaled_data_door_open():
         sub_data = data[points[0]:points[1]]
 
         # get frames of data
-        sub_data_length = len(sub_data)
-        feature_indices, label_indices = get_sample_indices(sub_data_length, x_window_size=FEATURE_LENGTH,
+        feature_indices, label_indices = get_sample_indices(data_length=len(sub_data),
+                                                            x_window_size=FEATURE_LENGTH,
                                                             y_window_size=LABEL_LENGTH)
         feature_framed_sub_data = np.array(sub_data)[feature_indices]
         label_framed_sub_data = np.array(sub_data)[label_indices]
@@ -50,8 +50,14 @@ def import_scaled_data_door_open():
     return feature_framed_data, label_framed_data
 
 
-def main():
-    torch.manual_seed(3)
+def main(seed=None):
+
+    if seed is not None:
+        torch.manual_seed(seed)
+
+    ################################
+    # Train model on training data
+    ################################
 
     # import data
     X, y = import_scaled_data_door_open()
@@ -81,34 +87,27 @@ def main():
     model = LSTM(1, 5, 1, device=device)
     model.to(device)
 
+    # train model
     loss_function = nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
-
     for epoch in range(NUMBER_OF_EPOCHS):
         train_one_epoch(epoch, model, train_loader, loss_function, optimizer, device=device)
         validate_one_epoch(model, test_loader, loss_function, device=device)
 
-    with torch.no_grad():
-        predicted = model(X_train.to(device)).to('cpu').numpy()
-
-
-    # do whole thing
-    # get frames of data
+    ################################
+    # Use model on entire data set
+    ################################
     data = import_scaled_data()
 
-    data_length = len(data)
-    feature_indices, label_indices = get_sample_indices(data_length, x_window_size=FEATURE_LENGTH, y_window_size=LABEL_LENGTH)
+    feature_indices, _ = get_sample_indices(data_length=len(data),
+                                            x_window_size=FEATURE_LENGTH,
+                                            y_window_size=LABEL_LENGTH)
 
-    feature_framed_data = data[feature_indices]
-    label_framed_data = data[label_indices]
+    X = data[feature_indices]
+    X = X[:, :, np.newaxis]  # add dimension
 
-    X = feature_framed_data
-    Y = label_framed_data
-
-    X = X[:, :, np.newaxis]
-
+    # convert to sensor
     X = torch.tensor(X).float()
-    Y = torch.tensor(Y).float()
 
     with torch.no_grad():
         predicted = model(X.to(device)).to('cpu').numpy()
@@ -118,4 +117,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    main(seed=3)
