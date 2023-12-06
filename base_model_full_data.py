@@ -18,7 +18,7 @@ LABEL_LENGTH = 1
 LEARNING_RATE = 0.001
 NUMBER_OF_EPOCHS = 30
 TRAIN_TO_TEST_RATIO = 0.7
-batch_size = 16
+BATCH_SIZE = 16
 
 
 def import_scaled_data_door_open():
@@ -75,15 +75,15 @@ def main(seed=None):
     y_train = torch.tensor(y_train).float()
     y_test = torch.tensor(y_test).float()
 
-    # create data sets
+    # create datasets
     train_dataset = TimeSeriesDataset(X_train, y_train)
     test_dataset = TimeSeriesDataset(X_test, y_test)
 
     # create data loaders
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+    train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
+    test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
-    # initialize model
+    # initialize model and move to device
     model = LSTM(1, 5, 1, device=device)
     model.to(device)
 
