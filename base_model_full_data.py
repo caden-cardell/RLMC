@@ -21,35 +21,6 @@ TRAIN_TO_TEST_RATIO = 0.7
 BATCH_SIZE = 16
 
 
-def import_scaled_data_door_open():
-
-    data = import_scaled_data()
-
-    door_open = [(160, 240), (700, 750), (820, 870), (1300, 1350), (1900, 1950), (2520, 2570), (3150, 3200),
-                 (3850, 3920)]
-
-    # init empty arrays
-    feature_framed_data = np.empty((0, FEATURE_LENGTH))
-    label_framed_data = np.empty((0, LABEL_LENGTH))
-
-    for points in door_open:
-        # get sub_data
-        sub_data = data[points[0]:points[1]]
-
-        # get frames of data
-        feature_indices, label_indices = get_sample_indices(data_length=len(sub_data),
-                                                            x_window_size=FEATURE_LENGTH,
-                                                            y_window_size=LABEL_LENGTH)
-        feature_framed_sub_data = np.array(sub_data)[feature_indices]
-        label_framed_sub_data = np.array(sub_data)[label_indices]
-
-        # concat all data
-        feature_framed_data = np.append(feature_framed_data, feature_framed_sub_data, axis=0)
-        label_framed_data = np.append(label_framed_data, label_framed_sub_data, axis=0)
-
-    return feature_framed_data, label_framed_data
-
-
 def main(seed=None):
 
     if seed is not None:
@@ -60,7 +31,15 @@ def main(seed=None):
     ################################
 
     # import data
-    X, y = import_scaled_data_door_open()
+    data = import_scaled_data()
+
+    feature_indices, label_indices = get_sample_indices(data_length=len(data),
+                                            x_window_size=FEATURE_LENGTH,
+                                            y_window_size=LABEL_LENGTH)
+
+    X = data[feature_indices]
+    X = X[:, :, np.newaxis]  # add dimension
+    y = data[label_indices]
 
     # split train and test data and add dimension to X
     split_index = int(len(X) * TRAIN_TO_TEST_RATIO)
@@ -111,7 +90,6 @@ def main(seed=None):
 
     with torch.no_grad():
         predicted = model(X.to(device)).to('cpu').numpy()
-
 
     np.save('predicted.npy', predicted)
 
