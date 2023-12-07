@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import re
 from sklearn.preprocessing import MinMaxScaler
 from lstm import LSTM, train_one_epoch, validate_one_epoch
-from my_utils import import_scaled_data, get_sample_indices, TimeSeriesDataset
+from base_model_utils import import_scaled_data, get_sample_indices, TimeSeriesDataset
 
 import torch
 import torch.nn as nn
@@ -24,16 +24,16 @@ def import_scaled_data_door_open():
 
     data = import_scaled_data()
 
-    door_open = [(160, 240), (700, 750), (820, 870), (1300, 1350), (1900, 1950), (2520, 2570), (3150, 3200),
-                 (3850, 3920)]
+    door_open_points = [(160, 240), (700, 750), (820, 870), (1300, 1350), (1900, 1950), (2520, 2570), (3150, 3200),
+                        (3850, 3920)]
 
     # init empty arrays
     feature_framed_data = np.empty((0, FEATURE_LENGTH))
     label_framed_data = np.empty((0, 1))
 
-    for points in door_open:
+    for point in door_open_points:
         # get sub_data
-        sub_data = data[points[0]:points[1]]
+        sub_data = data[point[0]:point[1]]
 
         # get frames of data
         feature_indices, label_indices = get_sample_indices(data_length=len(sub_data),
@@ -49,7 +49,7 @@ def import_scaled_data_door_open():
     return feature_framed_data, label_framed_data
 
 
-def main(seed=None):
+def train_and_predict_with_door_open(seed=None):
 
     if seed is not None:
         torch.manual_seed(seed)
@@ -115,4 +115,4 @@ def main(seed=None):
 
 
 if __name__ == '__main__':
-    main(seed=3)
+    train_and_predict_with_door_open(seed=3)

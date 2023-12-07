@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import re
 from sklearn.preprocessing import MinMaxScaler
 from lstm import LSTM, train_one_epoch, validate_one_epoch
-from my_utils import import_scaled_data, get_sample_indices, TimeSeriesDataset
+from base_model_utils import import_scaled_data, get_sample_indices, TimeSeriesDataset
 
 import torch
 import torch.nn as nn
