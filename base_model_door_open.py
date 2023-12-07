@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 import numpy as np
-import matplotlib.pyplot as plt
-import re
-from sklearn.preprocessing import MinMaxScaler
 from lstm import LSTM, train_one_epoch, validate_one_epoch
 from base_model_utils import import_scaled_data, get_sample_indices, TimeSeriesDataset
 
@@ -18,6 +15,7 @@ LEARNING_RATE = 0.001
 NUMBER_OF_EPOCHS = 30
 TRAIN_TO_TEST_RATIO = 0.7
 BATCH_SIZE = 16
+LSTM_HIDDEN_SIZE = 5
 
 
 def import_scaled_data_door_open():
@@ -49,7 +47,7 @@ def import_scaled_data_door_open():
     return feature_framed_data, label_framed_data
 
 
-def train_and_predict_with_door_open(seed=None):
+def train_and_predict_model_with_door_open(seed=None):
 
     if seed is not None:
         torch.manual_seed(seed)
@@ -83,7 +81,7 @@ def train_and_predict_with_door_open(seed=None):
     test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
     # initialize model and move to device
-    model = LSTM(1, 5, 1, device=device)
+    model = LSTM(1, LSTM_HIDDEN_SIZE, 1, device=device)
     model.to(device)
 
     # train model
@@ -115,4 +113,4 @@ def train_and_predict_with_door_open(seed=None):
 
 
 if __name__ == '__main__':
-    train_and_predict_with_door_open(seed=3)
+    train_and_predict_model_with_door_open(seed=3)

@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 import numpy as np
-import matplotlib.pyplot as plt
-import re
-from sklearn.preprocessing import MinMaxScaler
 from lstm import LSTM, train_one_epoch, validate_one_epoch
 from base_model_utils import import_scaled_data, get_sample_indices, TimeSeriesDataset
 
@@ -18,9 +15,10 @@ LEARNING_RATE = 0.001
 NUMBER_OF_EPOCHS = 20
 TRAIN_TO_TEST_RATIO = 0.7
 BATCH_SIZE = 16
+LSTM_HIDDEN_SIZE = 2
 
 
-def main(seed=None):
+def train_and_predict_model(seed=None):
 
     if seed is not None:
         torch.manual_seed(seed)
@@ -61,7 +59,7 @@ def main(seed=None):
     test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
     # initialize model and move to device
-    model = LSTM(1, 2, 1, device=device)
+    model = LSTM(1, LSTM_HIDDEN_SIZE, 1, device=device)
     model.to(device)
 
     # train model
@@ -93,4 +91,4 @@ def main(seed=None):
 
 
 if __name__ == '__main__':
-    main(seed=3)
+    train_and_predict_model(seed=3)
