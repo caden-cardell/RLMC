@@ -205,6 +205,10 @@ def print_model_error(model_number, y, predicted):
     print(f"Model {model_number} MAE error: {mae_loss:.5f}")
     print(f"Model {model_number} MAPE error: {mape_loss*100:.5f}")
 
+    with open('output.txt', 'a') as f:
+        f.write(f"Model {model_number} MAE error: {mae_loss:.5f}\n")
+        f.write(f"Model {model_number} MAPE error: {mape_loss*100:.5f}\n")
+
 
 ############
 # evaluate #

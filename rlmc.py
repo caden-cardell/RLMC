@@ -440,6 +440,10 @@ def run_rlmc(use_weight=True, use_td=True, use_extra=True, use_pretrain=True, ep
     print(f'test_mae_loss: {test_mae_loss:.5f}\t'
           f'test_mape_loss: {test_mape_loss*100:.5f}')
 
+    with open('output.txt', 'a') as f:
+        f.write(f'test_mae_loss: {test_mae_loss:.5f}\n')
+        f.write(f'test_mape_loss: {test_mape_loss*100:.5f}\n')
+
     return test_mae_loss, test_mape_loss
 
 

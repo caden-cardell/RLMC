@@ -10,9 +10,13 @@ from rlmc import run_rlmc
 FEATURE_LENGTH = 7
 
 
-def run_rlmc_test():
-    bm_1 = train_and_predict_model_with_door_open(seed=3)
-    bm_2 = train_and_predict_model(seed=3)
+def run_rlmc_test(seedling):
+
+    with open('output.txt', 'a') as f:
+        f.write(f"\n\nseedling: {seedling}\n")
+
+    bm_1 = train_and_predict_model_with_door_open(seed=seedling+100)
+    bm_2 = train_and_predict_model(seed=seedling+200)
     data = import_scaled_data()
 
     # TODO figure out how to address predictions being shorter than actual length
@@ -29,12 +33,21 @@ def run_rlmc_test():
 
     X = X[:, :, np.newaxis]
 
+    # HOLY SHIT BIG DIFFERENCE
     # Model 1 MAE error: 0.51866
     # Model 1 MAPE error: 14.22073
     # Model 2 MAE error: 0.24918
     # Model 2 MAPE error: 5.64110
     # test_mae_loss: 0.23774
     # test_mape_loss: 5.38738
+
+    # this the leading FEATURE length data was removed because predictions were shorter
+    # Model 1 MAE error: 0.51866
+    # Model 1 MAPE error: 14.22073
+    # Model 2 MAE error: 0.24918
+    # Model 2 MAPE error: 5.64110
+    # test_mae_loss: 0.20633
+    # test_mape_loss: 4.60492
 
     # np.save('bm_1.npy', bm_1)
     # np.save('bm_2.npy', bm_2)
@@ -44,10 +57,11 @@ def run_rlmc_test():
     unify_data_base_models(X, y, bm_1, bm_2)
 
     # run RL agent
-    torch.manual_seed(4)
+    torch.manual_seed(seedling+300)
     run_rlmc(False, True, True, True, 0.5)
 
 
 if __name__ == "__main__":
-    run_rlmc_test()
+
+    run_rlmc_test(seedling=5)
 
