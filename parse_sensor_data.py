@@ -293,6 +293,7 @@ def plot_test_results():
     test_bm_preds = input_data['test_bm_preds']
     rl_preds  = input_data['rl_preds'][:, 0]
     test_y = input_data['test_y'][:, 0]
+    weights = input_data['weights']
 
     pass
 
@@ -304,13 +305,21 @@ def plot_test_results():
     plt.plot(rl_preds, label="RL agent predictions", color='blue')
     plt.plot(test_y, label="True data", color='red')
 
+    weight = weights[:, 0, 0]
+    plt.plot(weight, label="weight", color='gray')
+
+    # print(weights.shape)
+    # for weight in weights:
+    #     print(weight.shape)
+
     # labeling
     plt.xlabel('15 minute time steps')
     plt.ylabel('Degrees F')
     plt.title('Synthetic Model Test Results')
-    plt.legend()
+    # plt.legend()
 
     # Display the plot
+    plt.
     plt.show()
 
 
@@ -384,17 +393,17 @@ if __name__ == '__main__':
 
     # create data
     # unify_sample_data(input_filepath='data.csv', x_window_size=120, y_window_size=24)
-    unify_data_base_models()
+    # unify_data_base_models()
 
     # plot synthetic data
     # create_synthetic_model_prediction_plots()
 
     # run RL agent
-    run_rlmc(False, True, True, True, 0.5)
+    # run_rlmc(False, True, True, True, 0.5)
 
     # plot results
     plot_test_results()
 
-    # plot error
-    plot_test_mape_loss()
-    plot_test_mae_loss()
+    # # plot error
+    # plot_test_mape_loss()
+    # plot_test_mae_loss()

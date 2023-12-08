@@ -4,6 +4,7 @@ import numpy as np
 import re
 from sklearn.preprocessing import MinMaxScaler
 from utils import compute_mape_error, compute_mae_error, print_model_error
+import matplotlib.pyplot as plt
 
 import torch
 from torch.utils.data import Dataset, DataLoader
@@ -49,21 +50,55 @@ def import_scaled_data():
     return np.array(data[:, 0])
 
 
-def unify_data_base_models(X, Y, bm_1, bm_2):
+def unify_data_base_models(X, Y, bms):
     # bm_1 = np.load('bm_1.npy')
     # bm_2 = np.load('bm_2.npy')
     # X = np.load('X.npy')
     # Y = np.load('Y.npy')
 
     # the predictions are shorter because the feature length is subtracted???
-    length = len(bm_1)
+    lengths = []
+    for bm in bms:
+        lengths.append(len(bm))
+
+    length = min(lengths)  # TODO use dim
+    print(length)
+
+    trunc_bms = []
+    for bm in bms:
+        trunc_bms.append(bm[-length:])
+    bms = trunc_bms
+
     feature_samples = X[-length:]
     label_samples = Y[-length:]
 
-    bm_1 = np.expand_dims(bm_1, axis=1)
-    bm_2 = np.expand_dims(bm_2, axis=1)
+    print(f"label_samples.shape: {label_samples.shape}")
 
-    base_model_samples = np.concatenate([bm_1, bm_2], axis=1)
+    plt.plot(label_samples, label="data", color='red')
+
+    # plot here
+    for i, bm in enumerate(bms):
+        print(f"bm.shape: {bm.shape}")
+
+        plt.plot(bm, label=f"base model {i}")
+
+    # labeling
+    plt.xlabel('15 minute time steps')
+    plt.ylabel('Degrees F')
+    plt.title('Synthetic Model Predictions')
+    plt.legend()
+
+    # Display the plot
+    plt.show()
+
+
+
+    expanded_bms = []
+    for bm in bms:
+        expanded_bm = np.expand_dims(bm, axis=1)
+        expanded_bms.append(expanded_bm)
+
+    base_model_samples = np.concatenate(expanded_bms, axis=1)
 
     # L = len(feature_samples) // 8
     L = len(feature_samples) - 2993
@@ -80,6 +115,9 @@ def unify_data_base_models(X, Y, bm_1, bm_2):
     valid_preds = base_model_samples[-(2 * L):-L]
     train_preds = base_model_samples[:-(2 * L)]
 
+    for base_model in range(len(bms)):  # TODO use dim
+        print_model_error(base_model, test_y, test_preds[:, base_model])
+
     # test_X = feature_samples[:L]
     # valid_X = feature_samples[L:(2 * L)]
     # train_X = feature_samples[(2 * L):]
@@ -95,9 +133,6 @@ def unify_data_base_models(X, Y, bm_1, bm_2):
     test_error_df  = compute_mape_error(test_y , test_preds)
     valid_error_df = compute_mape_error(valid_y, valid_preds)
     train_error_df = compute_mape_error(train_y, train_preds)
-
-    print_model_error(1, test_y, test_preds[:, 0])
-    print_model_error(2, test_y, test_preds[:, 1])
 
     np.save('dataset/bm_test_preds.npy', test_preds)
     np.save('dataset/bm_valid_preds.npy', valid_preds)

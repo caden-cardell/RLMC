@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 import torch
 
@@ -15,12 +17,14 @@ def run_rlmc_test(seedling):
     with open('output.txt', 'a') as f:
         f.write(f"\n\nseedling: {seedling}\n")
 
-    bm_1 = train_and_predict_model_with_door_open(seed=seedling+100)
-    bm_2 = train_and_predict_model(seed=seedling+200)
+    bm_11 = train_and_predict_model_with_door_open(seed=None)
+
+    bm_21 = train_and_predict_model(seed=None)
+
     data = import_scaled_data()
 
     # TODO figure out how to address predictions being shorter than actual length
-    print(bm_1.shape, bm_2.shape, data.shape)
+    # print(bm_1.shape, bm_2.shape, data.shape)
 
     data = import_scaled_data()
 
@@ -54,14 +58,24 @@ def run_rlmc_test(seedling):
     # np.save('X.npy', X)
     # np.save('Y.npy', y)
 
-    unify_data_base_models(X, y, bm_1, bm_2)
+    unify_data_base_models(X, y, [bm_11, bm_21])
+
+    print("DELETING BUFFER!!!!!!!!!!!!!!")
+    try:
+        os.remove("./dataset/batch_buffer.csv")
+    except:
+        pass
+
 
     # run RL agent
-    torch.manual_seed(seedling+300)
+    # torch.manual_seed(seedling+300)
     run_rlmc(False, True, True, True, 0.5)
 
 
 if __name__ == "__main__":
 
-    run_rlmc_test(seedling=5)
+    for i in range(1):
+        run_rlmc_test(seedling=(7000+(i+1)))
+        plot_test_results()
+
 

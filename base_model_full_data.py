@@ -10,9 +10,9 @@ from torch.utils.data import Dataset, DataLoader
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # hyper parameters
-FEATURE_LENGTH = 7
+FEATURE_LENGTH = 50
 LEARNING_RATE = 0.001
-NUMBER_OF_EPOCHS = 20
+NUMBER_OF_EPOCHS = 10
 TRAIN_TO_TEST_RATIO = 0.7
 BATCH_SIZE = 16
 LSTM_HIDDEN_SIZE = 2

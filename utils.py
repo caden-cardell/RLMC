@@ -229,6 +229,7 @@ def evaluate_agent(agent, test_states, test_bm_preds, test_y):
              test_X=test_states.cpu(),
              test_bm_preds=test_bm_preds,
              rl_preds=weighted_y,
+             weights=weights,
              test_y=test_y
             )
 

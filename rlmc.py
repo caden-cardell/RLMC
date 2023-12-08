@@ -259,7 +259,7 @@ def run_rlmc(use_weight=True, use_td=True, use_extra=True, use_pretrain=True, ep
     valid_X = np.swapaxes(valid_X, 2, 1)
     test_X  = np.swapaxes(test_X,  2, 1)
     L = len(train_X) - 1 if use_td else len(train_X)
-    FEAT_LEN = 7
+    FEAT_LEN = 13  # less than 20 more than 7
     train_X = train_X[:, :, -FEAT_LEN:]
     valid_X = valid_X[:, :, -FEAT_LEN:]
     test_X  = test_X[:,  :, -FEAT_LEN:]
