@@ -16,7 +16,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-
+FEAT_LEN = 20  # less than 20 more than 7
 DATA_DIR = 'dataset'
 SCALE_MEAN, SCALE_STD = np.load(f'{DATA_DIR}/scaler.npy')
 def inv_trans(x): return x * SCALE_STD + SCALE_MEAN
@@ -259,7 +259,6 @@ def run_rlmc(use_weight=True, use_td=True, use_extra=True, use_pretrain=True, ep
     valid_X = np.swapaxes(valid_X, 2, 1)
     test_X  = np.swapaxes(test_X,  2, 1)
     L = len(train_X) - 1 if use_td else len(train_X)
-    FEAT_LEN = 13  # less than 20 more than 7
     train_X = train_X[:, :, -FEAT_LEN:]
     valid_X = valid_X[:, :, -FEAT_LEN:]
     test_X  = test_X[:,  :, -FEAT_LEN:]

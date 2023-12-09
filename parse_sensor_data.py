@@ -319,7 +319,6 @@ def plot_test_results():
     # plt.legend()
 
     # Display the plot
-    plt.
     plt.show()
 
 
