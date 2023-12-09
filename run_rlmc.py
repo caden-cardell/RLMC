@@ -17,8 +17,8 @@ def run_rlmc_test(seedling):
     with open('output.txt', 'a') as f:
         f.write(f"\n\nseedling: {seedling}\n")
 
-    bm_1 = train_and_predict_model_with_door_open(seed=None)
-    bm_2 = train_and_predict_model(seed=None)
+    bm_1 = train_and_predict_model_with_door_open(seed=3)
+    bm_2 = train_and_predict_model(seed=3)
 
     data = import_scaled_data()
 
@@ -41,13 +41,18 @@ def run_rlmc_test(seedling):
 
     # run RL agent
     # torch.manual_seed(seedling+300)
-    run_rlmc(False, True, True, True, 0.5)
+    # run_rlmc(False, True, True, True, 0.5)
 
 
 if __name__ == "__main__":
 
+    # Model 0 MAE error: 0.52117
+    # Model 0 MAPE error: 14.33724
+    # Model 1 MAE error: 0.46180
+    # Model 1 MAPE error: 10.75681
+
     for i in range(1):
         run_rlmc_test(seedling=(7500+(i+1)))
-        plot_test_results()
+        # plot_test_results()
 
 
