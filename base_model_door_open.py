@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 import numpy as np
-from lstm import LSTM, train_one_epoch, validate_one_epoch
-from base_model_utils import import_scaled_data, get_sample_indices, TimeSeriesDataset
+from lstm import LSTM
+from base_model_utils import import_scaled_data, get_sample_indices
 from base_models.trainer import Trainer
+from base_models.time_series_dataset import TimeSeriesDataset
 
 import torch
 import torch.nn as nn
@@ -88,9 +89,6 @@ def train_and_predict_model_with_door_open(seed=None):
     # train model
     loss_function = nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
-    # for epoch in range(NUMBER_OF_EPOCHS):
-    #     train_one_epoch(epoch, model, train_loader, loss_function, optimizer, device=device)
-    #     validate_one_epoch(model, test_loader, loss_function, device=device)
     model_trainer = Trainer(model, train_loader, test_loader, optimizer, loss_function, NUMBER_OF_EPOCHS)
     model_trainer.train()
 

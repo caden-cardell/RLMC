@@ -3,11 +3,8 @@
 import numpy as np
 import re
 from sklearn.preprocessing import MinMaxScaler
-from utils import compute_mape_error, compute_mae_error, print_model_error
-import matplotlib.pyplot as plt
-
+from utils import compute_mape_error, print_model_error
 import torch
-from torch.utils.data import Dataset, DataLoader
 
 
 def load_data_from_csv(input_filepath):
@@ -41,27 +38,37 @@ def get_sample_indices(data_length, x_window_size=120, y_window_size=24):
 
 def import_scaled_data():
     data = load_data_from_csv("75e9_2023_09_07_11_02_to_2023_09_13_11_02.csv")
-    # print(data)
+
+    # add axis
+    data = data[:, np.newaxis]
 
     # scale data
     scaler = MinMaxScaler(feature_range=(-1, 1))
-
-    data = scaler.fit_transform(np.array(data[:, np.newaxis]))
+    data = scaler.fit_transform(data)
     return np.array(data[:, 0])
 
 
-def unify_data_base_models(X, Y, bms):
-    # bm_1 = np.load('bm_1.npy')
-    # bm_2 = np.load('bm_2.npy')
-    # X = np.load('X.npy')
-    # Y = np.load('Y.npy')
+def save_door_open_data():
+    # manually selected ranges
+    door_open_ranges = [(160, 240), (700, 750), (820, 870), (1300, 1350), (1900, 1950), (2520, 2570), (3150, 3200),
+                        (3850, 3920)]
 
+    # get data
+    data = import_scaled_data()
+
+    # collect door open data from corresponding ranges
+    door_open_data = [data[start:end] for start, end in door_open_ranges]
+
+    np.save('door_open_ranges.npy', door_open_data)
+
+
+def unify_data_base_models(X, Y, bms):
     # the predictions are shorter because the feature length is subtracted???
     lengths = []
     for bm in bms:
-        lengths.append(len(bm))
+        lengths.append(len(bm)) # TODO use dim
 
-    length = min(lengths)  # TODO use dim
+    length = min(lengths)
     print(length)
 
     trunc_bms = []
@@ -72,27 +79,6 @@ def unify_data_base_models(X, Y, bms):
     feature_samples = X[-length:]
     label_samples = Y[-length:]
 
-    print(f"label_samples.shape: {label_samples.shape}")
-
-    plt.plot(label_samples, label="data", color='red')
-
-    # plot here
-    for i, bm in enumerate(bms):
-        print(f"bm.shape: {bm.shape}")
-
-        plt.plot(bm, label=f"base model {i}")
-
-    # labeling
-    plt.xlabel('15 minute time steps')
-    plt.ylabel('Degrees F')
-    plt.title('Synthetic Model Predictions')
-    plt.legend()
-
-    # Display the plot
-    plt.show()
-
-
-
     expanded_bms = []
     for bm in bms:
         expanded_bm = np.expand_dims(bm, axis=1)
@@ -100,7 +86,6 @@ def unify_data_base_models(X, Y, bms):
 
     base_model_samples = np.concatenate(expanded_bms, axis=1)
 
-    # L = len(feature_samples) // 8
     L = len(feature_samples) - 2993
 
     test_X = feature_samples[-L:]
@@ -117,18 +102,6 @@ def unify_data_base_models(X, Y, bms):
 
     for base_model in range(len(bms)):  # TODO use dim
         print_model_error(base_model, test_y, test_preds[:, base_model])
-
-    # test_X = feature_samples[:L]
-    # valid_X = feature_samples[L:(2 * L)]
-    # train_X = feature_samples[(2 * L):]
-    #
-    # test_y = label_samples[:L]
-    # valid_y = label_samples[L:(2 * L)]
-    # train_y = label_samples[(2 * L):]
-    #
-    # test_preds = base_model_samples[:L]
-    # valid_preds = base_model_samples[L:(2 * L)]
-    # train_preds = base_model_samples[(2 * L):]
 
     test_error_df  = compute_mape_error(test_y , test_preds)
     valid_error_df = compute_mape_error(valid_y, valid_preds)
@@ -151,13 +124,5 @@ def unify_data_base_models(X, Y, bms):
             )
 
 
-class TimeSeriesDataset(Dataset):
-    def __init__(self, X, y):
-        self.X = X
-        self.y = y
-
-    def __len__(self):
-        return len(self.X)
-
-    def __getitem__(self, i):
-        return self.X[i], self.y[i]
+if __name__ == '__main__':
+    pass

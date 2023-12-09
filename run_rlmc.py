@@ -41,7 +41,7 @@ def run_rlmc_test(seedling):
 
     # run RL agent
     # torch.manual_seed(seedling+300)
-    # run_rlmc(False, True, True, True, 0.5)
+    run_rlmc(False, True, True, True, 0.5)
 
 
 if __name__ == "__main__":
@@ -53,6 +53,6 @@ if __name__ == "__main__":
 
     for i in range(1):
         run_rlmc_test(seedling=(7500+(i+1)))
-        # plot_test_results()
+        plot_test_results()
 
 

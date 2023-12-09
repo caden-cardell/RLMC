@@ -1,5 +1,7 @@
 import torch
-
+from tqdm import trange
+import sys
+import time
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
@@ -23,9 +25,8 @@ class Trainer:
         :return: A log that contains average loss and metric in this epoch.
         """
         self.model.train(True)
-        print(f'Epoch: {epoch + 1}')
         running_loss = 0.0
-
+        avg_loss_across_batches = 0.0
         for batch_index, batch in enumerate(self.train_loader):
             x_batch, y_batch = batch[0].to(device), batch[1].to(device)
 
@@ -39,10 +40,9 @@ class Trainer:
 
             if batch_index % 100 == 99:  # print every 100 batches
                 avg_loss_across_batches = running_loss / 100
-                print('Batch {0}, Loss: {1:.5f}'.format(batch_index + 1,
-                                                        avg_loss_across_batches))
                 running_loss = 0.0
-        print()
+
+        return avg_loss_across_batches
 
     def _valid_epoch(self, epoch):
         """
@@ -63,26 +63,12 @@ class Trainer:
                 running_loss += loss.item()
 
         avg_loss_across_batches = running_loss / len(self.test_loader)
-
-        print('Val Loss: {0:.5f}'.format(avg_loss_across_batches))
-        print('***************************************************')
-        print()
-
-    def _progress(self, batch_idx):
-        base = '[{}/{} ({:.0f}%)]'
-        if hasattr(self.train_loader, 'n_samples'):
-            current = batch_idx * self.train_loader.batch_size
-            total = self.train_loader.n_samples
-        else:
-            current = batch_idx
-            total = self.len_epoch
-        return base.format(current, total, 100.0 * current / total)
+        return avg_loss_across_batches
 
     def train(self):
         """
         Full training logic
         """
-        for epoch in range(self.len_epoch):
+        for epoch in trange(self.len_epoch, desc='Epoch'):
             self._train_epoch(epoch)
             self._valid_epoch(epoch)
-            self._progress(epoch)

@@ -227,7 +227,7 @@ def pretrain_actor(obs_dim, act_dim, hidden_dim, states, train_error, cls_weight
             pred = actor(valid_states)
             pred_idx = pred.argmax(1)
             acc = (pred_idx == best_valid_model).sum() / len(pred)
-        print(f'# epoch {epoch+1}: loss = {np.average(epoch_loss):.5f}\tacc = {acc:.3f}')
+        # print(f'# epoch {epoch+1}: loss = {np.average(epoch_loss):.5f}\tacc = {acc:.3f}')
 
         # early stop w.r.t. validation acc
         if acc > best_acc:
@@ -413,12 +413,12 @@ def run_rlmc(use_weight=True, use_td=True, use_extra=True, use_pretrain=True, ep
                     target_q_lst.append(info['target_q'])
 
         valid_mae_loss, valid_mape_loss, count_lst = evaluate_agent(agent, valid_states, valid_preds, valid_y)
-        print(f'\n# Epoch {epoch + 1} ({(time.time() - t1)/60:.2f} min): '
-              f'valid_mae_loss: {valid_mae_loss:.3f}\t'
-              f'valid_mape_loss: {valid_mape_loss*100:.3f}\t' 
-              f'q_loss: {np.average(q_loss_lst):.5f}\t'
-              f'current_q: {np.average(q_lst):.5f}\t'
-              f'target_q: {np.average(target_q_lst):.5f}\n')
+        # print(f'\n# Epoch {epoch + 1} ({(time.time() - t1)/60:.2f} min): '
+        #       f'valid_mae_loss: {valid_mae_loss:.3f}\t'
+        #       f'valid_mape_loss: {valid_mape_loss*100:.3f}\t'
+        #       f'q_loss: {np.average(q_loss_lst):.5f}\t'
+        #       f'current_q: {np.average(q_lst):.5f}\t'
+        #       f'target_q: {np.average(target_q_lst):.5f}\n')
 
         if valid_mape_loss < best_mape_loss:
             best_mape_loss = valid_mape_loss
