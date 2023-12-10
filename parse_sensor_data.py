@@ -4,7 +4,6 @@ import re
 import math
 import matplotlib.pyplot as plt
 from utils import compute_mape_error, compute_mae_error, print_model_error
-from rlmc import run_rlmc
 
 
 def get_sample_indices(data_length, x_window_size=120, y_window_size=24):

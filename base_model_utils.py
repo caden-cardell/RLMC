@@ -23,17 +23,19 @@ def load_data_from_csv(input_filepath):
     return np.array(data)
 
 
-def get_sample_indices(data_length, x_window_size=120, y_window_size=24):
-    sample_length = data_length - x_window_size - y_window_size
+def generate_sequence_sampling_indices(total_sequence_length, input_sequence_length, output_sequence_length):
+    num_possible_samples = total_sequence_length - input_sequence_length - output_sequence_length
 
     # create feature indices
-    feature_indices = torch.arange(x_window_size).view(1, -1) + torch.arange(sample_length).view(-1, 1)
+    input_indices = (torch.arange(input_sequence_length).view(1, -1) +
+                     torch.arange(num_possible_samples).view(-1, 1))
 
     # create label indices
-    label_indices = torch.arange(y_window_size).view(1, -1) + torch.arange(sample_length).view(-1, 1)
-    label_indices = torch.add(label_indices, x_window_size)
+    output_indices = (torch.arange(output_sequence_length).view(1, -1) +
+                      torch.arange(num_possible_samples).view(-1, 1))
+    output_indices = torch.add(output_indices, input_sequence_length)
 
-    return feature_indices, label_indices
+    return input_indices, output_indices
 
 
 def import_scaled_data():
@@ -66,7 +68,7 @@ def unify_data_base_models(X, Y, bms):
     # the predictions are shorter because the feature length is subtracted???
     lengths = []
     for bm in bms:
-        lengths.append(len(bm)) # TODO use dim
+        lengths.append(len(bm))  # TODO use dim
 
     length = min(lengths)
     print(length)
@@ -103,7 +105,7 @@ def unify_data_base_models(X, Y, bms):
     for base_model in range(len(bms)):  # TODO use dim
         print_model_error(base_model, test_y, test_preds[:, base_model])
 
-    test_error_df  = compute_mape_error(test_y , test_preds)
+    test_error_df = compute_mape_error(test_y, test_preds)
     valid_error_df = compute_mape_error(valid_y, valid_preds)
     train_error_df = compute_mape_error(train_y, train_preds)
 
@@ -121,7 +123,7 @@ def unify_data_base_models(X, Y, bms):
              test_error=test_error_df,
              valid_error=valid_error_df,
              train_error=train_error_df
-            )
+             )
 
 
 if __name__ == '__main__':

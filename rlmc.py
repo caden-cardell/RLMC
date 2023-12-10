@@ -439,8 +439,24 @@ def run_rlmc(use_weight=True, use_td=True, use_extra=True, use_pretrain=True, ep
     print(f'Test MAE loss: {test_mae_loss:.5f}\t'
           f'Test MAE loss: {test_mape_loss*100:.5f}')
 
+    # concat states
+    X = np.concatenate([train_X, valid_X, test_X])
+    all_states = torch.FloatTensor(X).to(device)
 
-    return test_mae_loss, test_mape_loss
+    # concat preds
+    train_preds = np.load(f'{DATA_DIR}/bm_train_preds.npy')
+    valid_preds = np.load(f'{DATA_DIR}/bm_valid_preds.npy')
+    test_preds = np.load(f'{DATA_DIR}/bm_test_preds.npy')
+    all_preds = np.concatenate([train_preds, valid_preds, test_preds])
+
+    # predict over full dataset
+    with torch.no_grad():
+        weights = agent.select_action(all_states)
+    weights = np.expand_dims(weights, -1)
+    weighted_y = weights * all_preds
+    weighted_y = weighted_y.sum(1)
+
+    return weighted_y, weights
 
 
 if __name__ == '__main__':

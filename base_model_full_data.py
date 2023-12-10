@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import numpy as np
 from lstm import LSTM
-from base_model_utils import import_scaled_data, get_sample_indices
+from base_model_utils import import_scaled_data, generate_sequence_sampling_indices
 from base_models.trainer import Trainer
 from base_models.time_series_dataset import TimeSeriesDataset
 
@@ -32,9 +32,9 @@ def train_and_predict_model(seed=None):
     # import data
     data = import_scaled_data()
 
-    feature_indices, label_indices = get_sample_indices(data_length=len(data),
-                                                        x_window_size=FEATURE_LENGTH,
-                                                        y_window_size=1)
+    feature_indices, label_indices = generate_sequence_sampling_indices(total_sequence_length=len(data),
+                                                                        input_sequence_length=FEATURE_LENGTH,
+                                                                        output_sequence_length=1)
 
     X = data[feature_indices]
     y = data[label_indices]
@@ -75,9 +75,9 @@ def train_and_predict_model(seed=None):
     ################################
     data = import_scaled_data()
 
-    feature_indices, _ = get_sample_indices(data_length=len(data),
-                                            x_window_size=FEATURE_LENGTH,
-                                            y_window_size=1)
+    feature_indices, _ = generate_sequence_sampling_indices(total_sequence_length=len(data),
+                                                            input_sequence_length=FEATURE_LENGTH,
+                                                            output_sequence_length=1)
 
     X = data[feature_indices]
     X = X[:, :, np.newaxis]  # add dimension
