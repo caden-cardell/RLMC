@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import numpy as np
 import re
 from sklearn.preprocessing import MinMaxScaler

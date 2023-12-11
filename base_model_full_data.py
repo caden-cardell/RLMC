@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 import numpy as np
 from lstm import LSTM
 from base_model_utils import import_scaled_data, generate_sequence_sampling_indices
