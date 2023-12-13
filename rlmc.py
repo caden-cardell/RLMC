@@ -16,7 +16,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-FEAT_LEN = 20  # less than 20 more than 7
+FEAT_LEN = 9  # less than 20 more than 7
 DATA_DIR = 'dataset'
 SCALE_MEAN, SCALE_STD = np.load(f'{DATA_DIR}/scaler.npy')
 def inv_trans(x): return x * SCALE_STD + SCALE_MEAN
