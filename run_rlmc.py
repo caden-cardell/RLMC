@@ -9,6 +9,8 @@ from base_model_utils import import_scaled_data, generate_sequence_sampling_indi
 from rlmc import run_rlmc
 import matplotlib.pyplot as plt
 
+from evaluate_outputs import evaluate_outputs_main
+
 FEATURE_LENGTH = 16
 
 
@@ -74,6 +76,6 @@ if __name__ == "__main__":
     # https://www.overleaf.com/latex/templates/ieee-conference-template/grfzhhncsfqn
 
     for i in range(40):
-        run_rlmc_test(seedling=(i+200))
+        run_rlmc_test(seedling=i)
 
-
+    evaluate_outputs_main()
